@@ -1675,7 +1675,7 @@ export const StoryboardGenNode = memo(({ id, data, selected, width, height }: St
           >
             {imageModels.map((model) => (
               <option key={model.id} value={model.id}>
-                {model.name}
+                {model.displayName}
               </option>
             ))}
           </select>
