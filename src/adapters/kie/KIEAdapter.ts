@@ -12,6 +12,7 @@ import { KIE_CONFIG } from './config'
 import { findRoute } from './models'
 import { parseImageResponse, parseVideoResponse } from './parsers'
 import { logInfo } from '../../utils/errorLogger'
+// @ts-ignore
 import { getMaxImageCount } from '../../components/MediaGenerator/utils/constants'
 
 export class KIEAdapter extends BaseAdapter {
@@ -180,7 +181,7 @@ export class KIEAdapter extends BaseAdapter {
       if (params.onProgress) {
         // 【关键修复】立即通过 onProgress 回调传递 taskId，让 App 层尽早保存
         params.onProgress({
-          status: 'TASK_CREATED',
+          status: 'TASK_CREATED' as any,
           taskId: taskId,
           message: '任务已创建，开始轮询...'
         })

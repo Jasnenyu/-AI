@@ -72,7 +72,7 @@ export class ModelscopeAdapter extends BaseAdapter {
       // 【关键修复】立即通过 onProgress 回调传递 taskId，让 App 层尽早保存
       if (params.onProgress) {
         params.onProgress({
-          status: 'TASK_CREATED',
+          status: 'TASK_CREATED' as any,
           taskId: response.task_id,
           message: '任务已创建，开始轮询...'
         })

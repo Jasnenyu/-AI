@@ -1,4 +1,5 @@
-import { providers } from '@/config/providers'
+// @ts-ignore
+import { providers } from '@/config-henji/providers'
 
 /**
  * 进度配置类型

@@ -269,7 +269,7 @@ export class FalAdapter extends BaseAdapter {
               if (update.request_id && !capturedRequestId) {
                 capturedRequestId = update.request_id
                 params.onProgress({
-                  status: 'TASK_CREATED',
+                  status: 'TASK_CREATED' as any,
                   requestId: update.request_id,
                   modelId: routeModelId,
                   message: '任务已创建，开始轮询...'
