@@ -12,7 +12,11 @@
     "close": "关闭",
     "loading": "加载中...",
     "error": "错误",
-    "success": "成功"
+    "success": "成功",
+    "show": "显示",
+    "hide": "隐藏",
+    "apply": "应用",
+    "clear": "清空"
   },
   "theme": {
     "dark": "深色",
@@ -146,7 +150,13 @@
       "overallAspectRatio": "整体比例",
       "requestAspectRatio": "请求比例",
       "framePlaceholder": "分镜 {{index}} 描述",
-      "gridPreviewTitle": "网格预览"
+      "gridPreviewTitle": "网格预览",
+      "gridSize": "网格",
+      "frames": "格",
+      "batchInput": "批量输入",
+      "batchInputPlaceholder": "每行输入一个分镜描述，共 {{count}} 个",
+      "model": "模型",
+      "resolution": "分辨率"
     },
     "textAnnotation": {
       "placeholder": "输入 Markdown 文本，取消选中后会渲染预览",
