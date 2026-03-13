@@ -189,7 +189,7 @@ export interface AudioResult {
 
 export interface TaskStatus {
   taskId: string
-  status: 'TASK_STATUS_QUEUED' | 'TASK_STATUS_SUCCEEDED' | 'TASK_STATUS_SUCCEED' | 'TASK_STATUS_FAILED' | 'TASK_STATUS_PROCESSING'
+  status: 'TASK_STATUS_QUEUED' | 'TASK_STATUS_SUCCEEDED' | 'TASK_STATUS_SUCCEED' | 'TASK_STATUS_FAILED' | 'TASK_STATUS_PROCESSING' | 'IN_QUEUE' | 'IN_PROGRESS' | 'COMPLETED' | 'TASK_CREATED'
   progress?: number
   result?: ImageResult | VideoResult | AudioResult
 }
