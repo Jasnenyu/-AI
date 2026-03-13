@@ -273,7 +273,7 @@ export class FalAdapter extends BaseAdapter {
                   requestId: update.request_id,
                   modelId: routeModelId,
                   message: '任务已创建，开始轮询...'
-                })
+                } as any)
                 logInfo('[FalAdapter] 🆔 图片任务已创建，requestId:', update.request_id)
               }
 
@@ -373,7 +373,7 @@ export class FalAdapter extends BaseAdapter {
         }
 
         // 其他状态（失败等）
-        throw new Error(`Task failed with status: ${statusResponse.status}`)
+        throw new Error(`Task failed with status: ${(statusResponse as any).status}`)
       }
 
       return await pollStatus()
@@ -487,7 +487,7 @@ export class FalAdapter extends BaseAdapter {
           ...parsedResult,
           requestId: capturedRequestId || (result as any).request_id,
           modelId: modelId
-        }
+        } as any
       }
 
       // 4. 否则只提交任务，返回 taskId
