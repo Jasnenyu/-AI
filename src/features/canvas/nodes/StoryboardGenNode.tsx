@@ -592,6 +592,10 @@ export const StoryboardGenNode = memo(({ id, data, selected, width, height }: St
     buildFrameDescriptionDrafts(nodeData.frames)
   );
   const frameDescriptionDraftsRef = useRef(frameDescriptionDrafts);
+
+  // 批量输入状态
+  const [batchInputText, setBatchInputText] = useState<string>('');
+  const [showBatchInput, setShowBatchInput] = useState<boolean>(false);
   const resolvedTitle = useMemo(
     () => resolveNodeDisplayName(CANVAS_NODE_TYPES.storyboardGen, nodeData),
     [nodeData]
@@ -1008,6 +1012,29 @@ export const StoryboardGenNode = memo(({ id, data, selected, width, height }: St
     selectedAspectRatio.value,
     supportedAspectRatioValues,
   ]);
+
+  // 批量输入处理函数
+  const handleBatchInputApply = useCallback(() => {
+    const lines = batchInputText.split('\n').filter(line => line.trim());
+    const totalFrames = nodeData.gridRows * nodeData.gridCols;
+    const newDrafts: Record<string, string> = { ...frameDescriptionDrafts };
+
+    lines.slice(0, totalFrames).forEach((line, index) => {
+      const frame = nodeData.frames[index];
+      if (frame) {
+        // 移除 "分镜X：" 前缀（如果用户输入了）
+        const cleanLine = line.replace(/^分镜\d+[:：]\s*/, '').trim();
+        newDrafts[frame.id] = cleanLine;
+      }
+    });
+
+    setFrameDescriptionDrafts(newDrafts);
+    setShowBatchInput(false);
+  }, [batchInputText, frameDescriptionDrafts, nodeData.frames, nodeData.gridRows, nodeData.gridCols]);
+
+  const handleBatchInputClear = useCallback(() => {
+    setBatchInputText('');
+  }, []);
 
   const handleGenerate = useCallback(async (previewGridOnly = false) => {
     if (!nodeData) {
@@ -1444,66 +1471,89 @@ export const StoryboardGenNode = memo(({ id, data, selected, width, height }: St
         onTitleChange={(nextTitle) => updateNodeData(id, { displayName: nextTitle })}
       />
 
-      {/* Frame summary + grid settings */}
-      <div className="mb-2.5 flex shrink-0 items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
-          <GridStepperControl
-            label={t('node.storyboardGen.rowsShort')}
-            value={nodeData.gridRows}
-            onDecrease={() => handleRowChange(-1)}
-            onIncrease={() => handleRowChange(1)}
-          />
-          <GridStepperControl
-            label={t('node.storyboardGen.colsShort')}
-            value={nodeData.gridCols}
-            onDecrease={() => handleColChange(-1)}
-            onIncrease={() => handleColChange(1)}
-          />
-        </div>
-
-        {showStoryboardGenAdvancedRatioControls && (
-          <div className="min-w-0 flex-1 rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-2 py-0.5 text-center text-[10px] text-text-muted">
-            <span>{t('node.storyboardGen.cellAspectRatio')}: {resolvedAspectRatios.cellAspectRatioLabel}</span>
-            <span className="mx-1 text-[rgba(255,255,255,0.22)]">|</span>
-            <span>{t('node.storyboardGen.overallAspectRatio')}: {resolvedAspectRatios.overallAspectRatioLabel}</span>
+      {/* Grid settings - 简化为垂直布局 */}
+      <div className="mb-3 flex flex-col gap-2">
+        {/* 行列设置 */}
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-text-muted">{t('node.storyboardGen.gridSize')}</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="flex h-5 w-5 items-center justify-center rounded bg-surface-dark text-text-muted hover:bg-bg-dark hover:text-text-dark border border-border-dark text-xs"
+              onClick={(e) => { e.stopPropagation(); handleRowChange(-1); }}
+            >
+              -
+            </button>
+            <span className="min-w-[20px] text-center text-xs text-text-dark">{nodeData.gridRows}</span>
+            <button
+              type="button"
+              className="flex h-5 w-5 items-center justify-center rounded bg-surface-dark text-text-muted hover:bg-bg-dark hover:text-text-dark border border-border-dark text-xs"
+              onClick={(e) => { e.stopPropagation(); handleRowChange(1); }}
+            >
+              +
+            </button>
           </div>
-        )}
+          <span className="text-text-muted">×</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="flex h-5 w-5 items-center justify-center rounded bg-surface-dark text-text-muted hover:bg-bg-dark hover:text-text-dark border border-border-dark text-xs"
+              onClick={(e) => { e.stopPropagation(); handleColChange(-1); }}
+            >
+              -
+            </button>
+            <span className="min-w-[20px] text-center text-xs text-text-dark">{nodeData.gridCols}</span>
+            <button
+              type="button"
+              className="flex h-5 w-5 items-center justify-center rounded bg-surface-dark text-text-muted hover:bg-bg-dark hover:text-text-dark border border-border-dark text-xs"
+              onClick={(e) => { e.stopPropagation(); handleColChange(1); }}
+            >
+              +
+            </button>
+          </div>
+          <span className="ml-auto text-[10px] text-text-muted">{totalFrames}{t('node.storyboardGen.frames')}</span>
+        </div>
+      </div>
 
-        <div className="flex items-center gap-1">
-          {showStoryboardGenAdvancedRatioControls && (
-            <div className="flex h-5 items-center rounded-full border border-[rgba(255,255,255,0.14)] bg-[rgba(255,255,255,0.04)] p-0.5">
+      {/* 批量输入区域 */}
+      <div className="mb-2 flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-text-muted">{t('node.storyboardGen.batchInput')}</span>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setShowBatchInput(!showBatchInput); }}
+            className="text-[10px] text-accent hover:text-accent/80 transition-colors"
+          >
+            {showBatchInput ? t('common.hide') : t('common.show')}
+          </button>
+        </div>
+        {showBatchInput && (
+          <div className="flex flex-col gap-1.5">
+            <textarea
+              value={batchInputText}
+              onChange={(e) => setBatchInputText(e.target.value)}
+              placeholder={t('node.storyboardGen.batchInputPlaceholder', { count: nodeData.gridRows * nodeData.gridCols })}
+              className="w-full h-20 rounded border border-border-dark bg-surface-dark px-2 py-1.5 text-[10px] text-text-dark placeholder:text-text-muted/40 focus:border-accent focus:outline-none resize-none"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="flex gap-1.5">
               <button
                 type="button"
-                className={`${RATIO_CONTROL_MODE_BUTTON_CLASS} ${ratioControlMode === 'overall'
-                  ? 'border-accent/55 bg-accent/18 text-text-dark'
-                  : 'border-transparent bg-transparent text-text-muted hover:bg-white/5'
-                  }`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  updateNodeData(id, { ratioControlMode: 'overall' });
-                }}
+                onClick={(e) => { e.stopPropagation(); handleBatchInputApply(); }}
+                className="flex-1 px-2 py-1 rounded bg-accent text-white text-[10px] hover:bg-accent/90 transition-colors"
               >
-                {t('node.storyboardGen.ratioModeOverall')}
+                {t('common.apply')}
               </button>
               <button
                 type="button"
-                className={`${RATIO_CONTROL_MODE_BUTTON_CLASS} ${ratioControlMode === 'cell'
-                  ? 'border-accent/55 bg-accent/18 text-text-dark'
-                  : 'border-transparent bg-transparent text-text-muted hover:bg-white/5'
-                  }`}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  updateNodeData(id, { ratioControlMode: 'cell' });
-                }}
+                onClick={(e) => { e.stopPropagation(); handleBatchInputClear(); }}
+                className="px-2 py-1 rounded border border-border-dark text-text-muted text-[10px] hover:bg-bg-dark transition-colors"
               >
-                {t('node.storyboardGen.ratioModeCell')}
+                {t('common.clear')}
               </button>
             </div>
-          )}
-          <div className={GRID_SUMMARY_CLASS}>
-            {t('node.storyboardGen.frameCount', { count: totalFrames })}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Frame Grid */}
@@ -1608,56 +1658,56 @@ export const StoryboardGenNode = memo(({ id, data, selected, width, height }: St
         </div>
       )}
 
-      {error && <div className="mb-1.5 shrink-0 text-[10px] text-red-400">{error}</div>}
+      {error && <div className="mb-2 shrink-0 text-[10px] text-red-400">{error}</div>}
 
-      {/* AI Parameters */}
-      <div
-        className="relative mx-auto mt-auto flex shrink-0 items-center justify-between"
-        style={{ width: `${frameLayout.paramsRowWidth}px` }}
-      >
-        <ModelParamsControls
-          imageModels={imageModels}
-          selectedModel={selectedModel}
-          resolutionOptions={resolutionOptions}
-          selectedResolution={selectedResolution}
-          selectedAspectRatio={selectedAspectRatio}
-          aspectRatioOptions={aspectRatioOptions}
-          onModelChange={(modelId) => updateNodeData(id, { model: modelId })}
-          onResolutionChange={(resolution) =>
-            updateNodeData(id, { size: resolution as ImageSize })
-          }
-          onAspectRatioChange={(aspectRatio) =>
-            updateNodeData(id, { requestAspectRatio: aspectRatio })
-          }
-          extraParams={nodeData.extraParams}
-          onExtraParamChange={(key, value) =>
-            updateNodeData(id, {
-              extraParams: {
-                ...(nodeData.extraParams ?? {}),
-                [key]: value,
-              },
-            })
-          }
-          showWebSearchToggle={showWebSearchToggle}
-          webSearchEnabled={webSearchEnabled}
-          onWebSearchToggle={(enabled) =>
-            updateNodeData(id, {
-              extraParams: {
-                ...(nodeData.extraParams ?? {}),
-                enable_web_search: enabled,
-              },
-            })
-          }
-          triggerSize="sm"
-          chipClassName={NODE_CONTROL_CHIP_CLASS}
-          modelChipClassName={NODE_CONTROL_MODEL_CHIP_CLASS}
-          paramsChipClassName={NODE_CONTROL_PARAMS_CHIP_CLASS}
-          modelPanelAlign="center"
-          paramsPanelAlign="center"
-          modelPanelClassName="inline-block min-w-[300px] max-w-[calc(100vw-32px)] p-2"
-          paramsPanelClassName="w-[420px] p-3"
-        />
+      {/* AI Parameters - 简化为垂直布局 */}
+      <div className="mt-auto flex shrink-0 flex-col gap-2">
+        {/* 模型选择 */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] text-text-muted uppercase tracking-wider">
+            {t('node.storyboardGen.model')}
+          </label>
+          <select
+            value={selectedModel.id}
+            onChange={(e) => updateNodeData(id, { model: e.target.value })}
+            className="w-full rounded border border-border-dark bg-surface-dark px-2 py-1 text-xs text-text-dark focus:border-accent focus:outline-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {imageModels.map((model) => (
+              <option key={model.id} value={model.id}>
+                {model.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
+        {/* 分辨率选择 */}
+        <div className="flex flex-col gap-1">
+          <label className="text-[10px] text-text-muted uppercase tracking-wider">
+            {t('node.storyboardGen.resolution')}
+          </label>
+          <div className="flex flex-wrap gap-1">
+            {resolutionOptions.map((res) => (
+              <button
+                key={res.value}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  updateNodeData(id, { size: res.value as ImageSize });
+                }}
+                className={`
+                  px-2 py-1 rounded text-[10px] font-medium transition-colors
+                  ${selectedResolution.value === res.value
+                    ? 'bg-accent text-white'
+                    : 'bg-surface-dark text-text-muted hover:bg-bg-dark hover:text-text-dark border border-border-dark'}
+                `}
+              >
+                {res.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 生成按钮 */}
         <UiButton
           onClick={(event: ReactMouseEvent<HTMLButtonElement>) => {
             event.stopPropagation();
@@ -1667,9 +1717,9 @@ export const StoryboardGenNode = memo(({ id, data, selected, width, height }: St
           }}
           variant="primary"
           size="sm"
-          className={`!min-w-0 shrink-0 ${NODE_CONTROL_PRIMARY_BUTTON_CLASS}`}
+          className="w-full mt-1 py-1.5 text-xs"
         >
-          <Sparkles className={NODE_CONTROL_ICON_CLASS} strokeWidth={2.8} />
+          <Sparkles className="h-3 w-3 mr-1" strokeWidth={2.8} />
           {t('canvas.generate')}
         </UiButton>
       </div>

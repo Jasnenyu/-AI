@@ -1,7 +1,7 @@
 {
   "app": {
-    "title": "分镜助手",
-    "subtitle": "Storyboard Copilot"
+    "title": "酸菜AI漫剧",
+    "subtitle": "AI Storyboard & Video"
   },
   "common": {
     "save": "保存",
@@ -262,8 +262,8 @@
     "getApiKeyLink": "点击这里获取密钥",
     "missingAnyApiKeyMessage": "您尚未配置任何密钥，请打开设置进行配置。",
     "openProvidersSettings": "打开设置",
-    "aboutAppName": "分镜助手",
-    "aboutIntro": "基于节点画布的 AI 分镜工作台，一站式完成图片生成、编辑与分镜流程。",
+    "aboutAppName": "酸菜AI漫剧",
+    "aboutIntro": "基于节点画布的 AI 漫剧工作台，一站式完成图片生成、编辑与分镜流程。",
     "aboutVersionLabel": "版本",
     "aboutVersionUnknown": "未知",
     "aboutAuthorLabel": "作者",

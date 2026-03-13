@@ -9,7 +9,9 @@ use tokio::sync::RwLock;
 use tracing::info;
 
 use crate::ai::error::AIError;
-use crate::ai::AIProvider;
+use crate::ai::{
+    AIProvider, GenerateRequest, ProviderTaskHandle, ProviderTaskPollResult, ProviderTaskSubmission,
+};
 
 use registry::PPIOModelRegistry;
 
@@ -44,34 +46,8 @@ impl PPIOProvider {
         let key = self.api_key.read().await;
         key.clone()
     }
-}
 
-impl Default for PPIOProvider {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-#[async_trait::async_trait]
-impl AIProvider for PPIOProvider {
-    fn name(&self) -> &str {
-        "ppio"
-    }
-
-    fn supports_model(&self, model: &str) -> bool {
-        self.model_registry.supports(model)
-    }
-
-    fn list_models(&self) -> Vec<String> {
-        self.model_registry.list_models()
-    }
-
-    async fn set_api_key(&self, api_key: String) -> Result<(), AIError> {
-        PPIOProvider::set_api_key(self, api_key).await;
-        Ok(())
-    }
-
-    async fn generate(&self, request: crate::ai::GenerateRequest) -> Result<String, AIError> {
+    async fn generate_internal(&self, request: GenerateRequest) -> Result<String, AIError> {
         let key = self.api_key.read().await;
         let api_key = key
             .as_ref()
@@ -113,5 +89,55 @@ impl AIProvider for PPIOProvider {
         } else {
             Err(AIError::Provider("No image URL in response".to_string()))
         }
+    }
+}
+
+impl Default for PPIOProvider {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[async_trait::async_trait]
+impl AIProvider for PPIOProvider {
+    fn name(&self) -> &str {
+        "ppio"
+    }
+
+    fn supports_model(&self, model: &str) -> bool {
+        self.model_registry.supports(model)
+    }
+
+    fn list_models(&self) -> Vec<String> {
+        self.model_registry.list_models()
+    }
+
+    async fn set_api_key(&self, api_key: String) -> Result<(), AIError> {
+        PPIOProvider::set_api_key(self, api_key).await;
+        Ok(())
+    }
+
+    fn supports_task_resume(&self) -> bool {
+        // PPIO API 是同步的，但我们模拟异步任务以获得更好的 UX
+        true
+    }
+
+    async fn submit_task(&self, request: GenerateRequest) -> Result<ProviderTaskSubmission, AIError> {
+        // PPIO 是同步 API，我们直接执行并返回结果
+        // 这样前端可以立即知道任务完成
+        match self.generate_internal(request).await {
+            Ok(image_url) => Ok(ProviderTaskSubmission::Succeeded(image_url)),
+            Err(error) => Err(error),
+        }
+    }
+
+    async fn poll_task(&self, _handle: ProviderTaskHandle) -> Result<ProviderTaskPollResult, AIError> {
+        // PPIO 是同步 API，不需要轮询
+        // 这个方法不应该被调用，因为 submit_task 直接返回 Succeeded
+        Ok(ProviderTaskPollResult::Failed("PPIO does not support task polling".to_string()))
+    }
+
+    async fn generate(&self, request: GenerateRequest) -> Result<String, AIError> {
+        self.generate_internal(request).await
     }
 }
