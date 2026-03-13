@@ -22,9 +22,7 @@ jobs:
           cache: 'npm'
       - uses: dtolnay/rust-toolchain@stable
       - name: Install dependencies
-        run: |
-          npm ci
-          npm install axios @fal-ai/client @tauri-apps/plugin-fs
+        run: npm install
       - name: Build application
         run: npx tauri build
       - name: Rename Windows installer
@@ -66,9 +64,7 @@ jobs:
         with:
           targets: aarch64-apple-darwin,x86_64-apple-darwin
       - name: Install dependencies
-        run: |
-          npm ci
-          npm install axios @fal-ai/client @tauri-apps/plugin-fs
+        run: npm install
       - name: Build application
         env:
           CC: ""
