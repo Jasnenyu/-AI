@@ -16,7 +16,7 @@ import { NodePriceBadge } from '@/features/canvas/ui/NodePriceBadge';
 // import { useStoryboardPrice } from '@/features/canvas/pricing/useStoryboardPrice';
 // import { useSettingsStore } from '@/stores/settingsStore';
 import { listImageModels, getImageModel } from '@/features/canvas/models';
-import { resolveImageDisplayUrl } from '@/utils/imageUrl';
+import { resolveImageDisplayUrl } from '@/features/canvas/application/imageData';
 import type { StoryboardGenNodeData, ImageSize } from '@/features/canvas/domain/canvasNodes';
 import { 
   STORYBOARD_GEN_HEADER_ADJUST, 
