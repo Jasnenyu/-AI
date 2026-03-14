@@ -265,3 +265,8 @@ export function nodeHasImage(node: CanvasNode | null | undefined): boolean {
 
   return false;
 }
+
+// StoryboardGenNode header adjustment constants
+export const STORYBOARD_GEN_HEADER_ADJUST = { x: 0, y: 0, scale: 1 };
+export const STORYBOARD_GEN_ICON_ADJUST = { x: 0, y: 0, scale: 1 };
+export const STORYBOARD_GEN_TITLE_ADJUST = { x: 0, y: 0, scale: 1 };
